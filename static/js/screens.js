@@ -419,6 +419,204 @@ function renderLearning(scenario, onBack, onComplete) {
 /* ══════════════════════════════════════════
   SCREEN 6 — COMPLETION
 ══════════════════════════════════════════ */
+function renderWorkUpload(onBack, onCreated) {
+  const screen = document.getElementById('screen-work-upload');
+  screen.innerHTML = '';
+
+  const navWrap = document.createElement('div');
+  renderTopBar(navWrap, { onBack, progress: 40 });
+  screen.appendChild(navWrap);
+
+  const scroll = document.createElement('div');
+  scroll.className = 'scroll-area';
+  renderScreenHeader(scroll, { icon: '🛍️', eyebrow: 'Sell your product' });
+
+  const form = document.createElement('div');
+  form.className = 'work-form';
+
+  const imageLabel = document.createElement('label');
+  imageLabel.textContent = 'Photo (optional)';
+  const imageInput = document.createElement('input');
+  imageInput.type = 'file';
+  imageInput.accept = 'image/*';
+  imageLabel.appendChild(imageInput);
+  form.appendChild(imageLabel);
+
+  const previewContainer = document.createElement('div');
+  previewContainer.className = 'image-preview';
+  previewContainer.style.marginTop = '10px';
+  previewContainer.style.maxHeight = '240px';
+  previewContainer.style.overflow = 'hidden';
+  previewContainer.style.borderRadius = '12px';
+  form.appendChild(previewContainer);
+
+  let imageData = '';
+
+  imageInput.addEventListener('change', async () => {
+    previewContainer.innerHTML = '';
+    imageData = '';
+    if (imageInput.files && imageInput.files[0]) {
+      const file = imageInput.files[0];
+      try {
+        const resized = await resizeImageFile(file, 640);
+        imageData = resized;
+        const img = document.createElement('img');
+        img.src = resized;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '220px';
+        img.style.borderRadius = '12px';
+        img.style.boxShadow = '0 8px 20px rgba(0,0,0,.18)';
+        previewContainer.appendChild(img);
+      } catch (err) {
+        console.error('Image resize failed', err);
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '220px';
+        img.style.borderRadius = '12px';
+        img.style.boxShadow = '0 8px 20px rgba(0,0,0,.18)';
+        previewContainer.appendChild(img);
+      }
+    }
+  });
+
+  const categoryLabel = document.createElement('div');
+  categoryLabel.className = 'category-label';
+  categoryLabel.textContent = 'Choose type';
+  form.appendChild(categoryLabel);
+
+  const categories = [
+    { value: 'Embroidery', label: 'Embroidery', icon: '🧵' },
+    { value: 'Crochet', label: 'Crochet', icon: '🧶' },
+    { value: 'Knitting', label: 'Knitting', icon: '🧶' },
+    { value: 'Decoration', label: 'Decoration', icon: '🖼️' },
+    { value: 'Candle', label: 'Candle', icon: '🕯️' },
+    { value: 'Jewelry', label: 'Jewelry', icon: '💍' },
+    { value: 'Soap', label: 'Natural Soap', icon: '🧼' },
+  ];
+
+  let selectedCategory = '';
+  const catGrid = document.createElement('div');
+  catGrid.className = 'category-grid';
+
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'category-btn';
+    btn.innerHTML = `<div class="cat-icon">${cat.icon}</div><span>${cat.label}</span>`;
+    btn.addEventListener('click', () => {
+      selectedCategory = cat.value;
+      catGrid.querySelectorAll('.category-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      status.textContent = `Selected: ${cat.label}`;
+    });
+    catGrid.appendChild(btn);
+  });
+  form.appendChild(catGrid);
+
+  const costLabel = document.createElement('label');
+  costLabel.textContent = 'Price (CAD)';
+  const costInput = document.createElement('input');
+  costInput.type = 'number';
+  costInput.min = '1';
+  costInput.step = '0.01';
+  costInput.placeholder = '25.00';
+  costLabel.appendChild(costInput);
+  form.appendChild(costLabel);
+
+  const helpRow = document.createElement('div');
+  helpRow.className = 'work-help-row';
+  helpRow.innerHTML = '<small>Tip: Keep product name short. Use to upload with a photo.</small>';
+  form.appendChild(helpRow);
+
+  const generateBtn = document.createElement('button');
+  generateBtn.className = 'wide-btn';
+  generateBtn.textContent = 'Generate Etsy text';
+
+  const resultBox = document.createElement('div');
+  resultBox.className = 'result-card';
+  resultBox.style.display = 'none';
+
+  const titleOut = document.createElement('div');
+  titleOut.className = 'result-title';
+  const descOut = document.createElement('div');
+  descOut.className = 'result-desc';
+  const tagsOut = document.createElement('div');
+  tagsOut.className = 'result-tags';
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'wide-btn';
+  copyBtn.textContent = 'Copy description';
+
+  resultBox.appendChild(titleOut);
+  resultBox.appendChild(descOut);
+  resultBox.appendChild(tagsOut);
+  resultBox.appendChild(copyBtn);
+
+  form.appendChild(generateBtn);
+  form.appendChild(resultBox);
+
+  const status = document.createElement('div');
+  status.className = 'status-text';
+  form.appendChild(status);
+
+  scroll.appendChild(form);
+  screen.appendChild(scroll);
+
+  generateBtn.addEventListener('click', async () => {
+    const productName = selectedCategory;
+    const price = costInput.value.trim();
+
+    if (!productName) {
+      status.textContent = 'Please choose a type.';
+      return;
+    }
+    if (!price) {
+      status.textContent = 'Please enter price.';
+      return;
+    }
+
+    status.textContent = 'Generating…';
+    generateBtn.disabled = true;
+
+    const payload = {
+      productName,
+      price,
+      hasImage: !!imageData,
+    };
+
+    try {
+      const response = await fetch('/api/etsy-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        status.textContent = data.feedback || 'Could not generate. Try again.';
+      } else {
+        titleOut.textContent = 'Title: ' + (data.title || '…');
+        descOut.textContent = 'Description: ' + (data.description || '…');
+        tagsOut.textContent = 'Tags: ' + (data.tags || '…');
+        resultBox.style.display = 'block';
+        status.textContent = 'Done! Copy or edit text in the next step.';
+        if (onCreated) onCreated(data);
+      }
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Error generating description.';
+    } finally {
+      generateBtn.disabled = false;
+    }
+  });
+
+  copyBtn.addEventListener('click', () => {
+    const text = `${titleOut.textContent}\n\n${descOut.textContent}\n\n${tagsOut.textContent}`;
+    navigator.clipboard.writeText(text).then(() => showToast('Copied!'), () => showToast('Failed to copy'));
+  });
+}
+
+
 function renderComplete(scenario, onMore) {
  const screen = document.getElementById('screen-complete');
  const total  = scenario.lessons.length;
