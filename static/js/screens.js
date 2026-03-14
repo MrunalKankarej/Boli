@@ -527,6 +527,10 @@ function renderWorkUpload(onBack, onCreated) {
   resultBox.className = 'result-card';
   resultBox.style.display = 'none';
 
+  const productNameOut = document.createElement('div');
+  productNameOut.className = 'result-product';
+  const productDescOut = document.createElement('div');
+  productDescOut.className = 'result-product-desc';
   const titleOut = document.createElement('div');
   titleOut.className = 'result-title';
   const descOut = document.createElement('div');
@@ -537,6 +541,8 @@ function renderWorkUpload(onBack, onCreated) {
   copyBtn.className = 'wide-btn';
   copyBtn.textContent = 'Copy description';
 
+  resultBox.appendChild(productNameOut);
+  resultBox.appendChild(productDescOut);
   resultBox.appendChild(titleOut);
   resultBox.appendChild(descOut);
   resultBox.appendChild(tagsOut);
@@ -586,9 +592,11 @@ function renderWorkUpload(onBack, onCreated) {
       if (!response.ok) {
         status.textContent = data.feedback || 'Could not generate. Try again.';
       } else {
-        titleOut.textContent = 'Title: ' + (data.title || '…');
-        descOut.textContent = 'Description: ' + (data.description || '…');
-        tagsOut.textContent = 'Tags: ' + (data.tags || '…');
+        productNameOut.textContent = 'Product name: ' + (data.productName || data.title || 'Unknown product');
+        productDescOut.textContent = 'Product description: ' + (data.productDescription || data.description || 'No description detected from image.');
+        titleOut.textContent = 'Title: ' + (data.title || (data.productName || 'Untitled')); 
+        descOut.textContent = 'Description: ' + (data.description || 'Item details not available.');
+        tagsOut.textContent = 'Tags: ' + (data.tags || 'handmade,small-business');
         resultBox.style.display = 'block';
         status.textContent = 'Done! Copy or edit text in the next step.';
         if (onCreated) onCreated(data);

@@ -211,32 +211,37 @@ def create_etsy_description():
     model = os.environ.get("GEMINI_MODEL", "text-bison-001")
 
     price_label = f"CAD ${price}" if price else ""
+    image_labels = []
+    if imageData:
+        image_labels = _get_image_labels_from_vision(imageData)
+
     prompt = (
-        "You are a friendly tutor for a learner with minimal English.\n"
-        "Create an Etsy product listing text for a small shop seller.\n"
-        f"Product name: {product_name}\n"
+        "You are an AI assistant for a beginner Etsy seller.\n"
+        "A user submitted a product with category and optional image.\n"
+        "Your job:\n"
+        "- Look at the image context (image labels) and identify the product.\n"
+        "- Provide Product name and one-sentence product description.\n"
+        "- Also give a listing Title, a short Description, and Tags.\n"
+        "If you cannot identify the product, describe what you see instead.\n"
+        f"Product hint: {product_name}\n"
         f"Price: {price_label}\n"
         f"Image included: {'yes' if has_image else 'no'}\n"
-        "Write output as JSON with keys: title, description, tags (comma-separated).\n"
-        "Keep sentences short, easy to read, no complex words.\n"
-        "Return only JSON, no extra text."
+        f"Image data labels: {', '.join(image_labels) if image_labels else 'none'}\n"
+        "Return JSON only with keys: productName, productDescription, title, description, tags.\n"
+        "Be specific and concise. Keep sentences simple."
     )
 
     if not api_key or not requests:
         # fallback if no Gemini available
         return jsonify({
+            "productName": product_name,
+            "productDescription": f"{product_name} for ${price}, simple and reliable.",
             "title": product_name,
             "description": f"{product_name} for ${price}. Good quality and value.",
             "tags": "handmade,small business,etsy",
         })
 
     url = f"https://generativelanguage.googleapis.com/v1beta2/models/{model}:generate?key={api_key}"
-    # image labels injection (vision API version)
-    image_labels = []
-    if imageData:
-        image_labels = _get_image_labels_from_vision(imageData)
-        if image_labels:
-            prompt += "\nImage labels detected: " + ", ".join(image_labels)
 
     payload = {
         "prompt": {"text": prompt},
@@ -263,6 +268,8 @@ def create_etsy_description():
 
         if parsed and isinstance(parsed, dict):
             return jsonify({
+                "productName": parsed.get("productName", parsed.get("title", product_name)),
+                "productDescription": parsed.get("productDescription", ""),
                 "title": parsed.get("title", product_name),
                 "description": parsed.get("description", ""),
                 "tags": parsed.get("tags", ""),
@@ -278,6 +285,8 @@ def create_etsy_description():
     except Exception as exc:
         print("Gemini etsy error:", exc)
         return jsonify({
+            "productName": product_name,
+            "productDescription": f"{product_name} for {price_label}. Simple and original.",
             "title": product_name,
             "description": f"{product_name} for {price_label}. Good quality and value.",
             "tags": "handmade,etsy,small-business",
