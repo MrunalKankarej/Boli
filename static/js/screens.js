@@ -489,10 +489,9 @@ function renderWorkUpload(onBack, onCreated) {
     { value: 'Embroidery', label: 'Embroidery', icon: '🧵' },
     { value: 'Crochet', label: 'Crochet', icon: '🧶' },
     { value: 'Knitting', label: 'Knitting', icon: '🧶' },
-    { value: 'Decoration', label: 'Decoration', icon: '🖼️' },
     { value: 'Candle', label: 'Candle', icon: '🕯️' },
     { value: 'Jewelry', label: 'Jewelry', icon: '💍' },
-    { value: 'Soap', label: 'Natural Soap', icon: '🧼' },
+    { value: 'Other', label: 'Other', icon: '✨' },
   ];
 
   let selectedCategory = '';
