@@ -13,22 +13,13 @@ function renderStart(onStart) {
       <div class="orb orb-3"></div>
     </div>
     <div class="start-logo-ring">
-      <div class="start-logo-inner">A</div>
+      <div class="start-logo-inner">BOLI</div>
     </div>
-    <div class="start-tagline">Learn English</div>
-    <div class="start-sub">Together · Today</div>
     <button class="play-btn" id="play-btn" aria-label="Start">
-      <svg width="38" height="38" viewBox="0 0 24 24" fill="#FF8A3D">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="#39d500">
         <polygon points="5,3 19,12 5,21"/>
       </svg>
     </button>
-    <div class="lang-pills">
-      <div class="lang-pill active">🇺🇸 EN</div>
-      <div class="lang-pill">🇦🇲 HY</div>
-      <div class="lang-pill">🇸🇾 AR</div>
-      <div class="lang-pill">🇺🇦 UK</div>
-      <div class="lang-pill">🇪🇸 ES</div>
-    </div>
   `;
 
  screen.querySelector('#play-btn').addEventListener('click', () => {
