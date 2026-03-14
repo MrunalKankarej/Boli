@@ -18,6 +18,7 @@
     'screen-category',
     'screen-module',
     'screen-scenario',
+    'screen-work-upload',
     'screen-learning',
     'screen-complete',
   ];
@@ -65,10 +66,28 @@
   function showModule() {
     renderModule(
       modules,
-      (mod) => { state.module = mod; showScenario(); },
+      (mod) => {
+        state.module = mod;
+        if (mod.id === 'work') {
+          showWorkUpload();
+        } else {
+          showScenario();
+        }
+      },
       ()    => showCategory()
     );
     goTo('screen-module');
+  }
+
+  function showWorkUpload() {
+    renderWorkUpload(
+      () => showModule(),
+      (result) => {
+        // result is {title, description, tags}
+        showToast('Etsy text ready. You can copy it now.');
+      }
+    );
+    goTo('screen-work-upload');
   }
 
   function showScenario() {
