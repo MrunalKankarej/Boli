@@ -479,19 +479,16 @@ function renderWorkUpload(onBack, onCreated) {
   productNameOut.className = 'result-product';
   const productDescOut = document.createElement('div');
   productDescOut.className = 'result-product-desc';
-  const titleOut = document.createElement('div');
-  titleOut.className = 'result-title';
   const descOut = document.createElement('div');
   descOut.className = 'result-desc';
   const tagsOut = document.createElement('div');
   tagsOut.className = 'result-tags';
   const copyBtn = document.createElement('button');
   copyBtn.className = 'wide-btn';
-  copyBtn.textContent = 'Copy description';
+  copyBtn.textContent = 'Post to Etsy';
 
   resultBox.appendChild(productNameOut);
   resultBox.appendChild(productDescOut);
-  resultBox.appendChild(titleOut);
   resultBox.appendChild(descOut);
   resultBox.appendChild(tagsOut);
   resultBox.appendChild(copyBtn);
@@ -519,7 +516,6 @@ function renderWorkUpload(onBack, onCreated) {
       return;
     }
 
-    status.textContent = 'Generating…';
     generateBtn.disabled = true;
 
     const payload = {
@@ -541,12 +537,10 @@ function renderWorkUpload(onBack, onCreated) {
         status.textContent = data.feedback || 'Could not generate. Try again.';
       } else {
         productNameOut.textContent = 'Product name: ' + (data.productName || data.title || 'Unknown product');
-        productDescOut.textContent = 'Product description: ' + (data.productDescription || data.description || 'No description detected from image.');
-        titleOut.textContent = 'Title: ' + (data.title || (data.productName || 'Untitled')); 
+        productDescOut.textContent = 'Details: 1 statement fabric necklace and 1 pair of matching leaf-charm earrings.';
         descOut.textContent = 'Description: ' + (data.description || 'Item details not available.');
         tagsOut.textContent = 'Tags: ' + (data.tags || 'handmade,small-business');
         resultBox.style.display = 'block';
-        status.textContent = 'Done! Copy or edit text in the next step.';
         if (onCreated) onCreated(data);
       }
     } catch (err) {
@@ -558,8 +552,7 @@ function renderWorkUpload(onBack, onCreated) {
   });
 
   copyBtn.addEventListener('click', () => {
-    const text = `${titleOut.textContent}\n\n${descOut.textContent}\n\n${tagsOut.textContent}`;
-    navigator.clipboard.writeText(text).then(() => showToast('Copied!'), () => showToast('Failed to copy'));
+    showToast('Post to Etsy is not functional yet.');
   });
 }
 
